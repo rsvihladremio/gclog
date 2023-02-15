@@ -1,0 +1,32 @@
+#!/bin/sh
+
+# script/bootstrap: Resolve all dependencies that the application requires to
+#                   run.
+
+set -e
+
+cd "$(dirname "$0")/.."
+
+if ! command -v cargo &> /dev/null
+then
+    echo "cargo could not be found installing"
+    curl https://sh.rustup.rs -sSf | sh -s -- -y
+    rustup-init -y
+fi
+
+cmd="cargo audit -h"
+$cmd &> /dev/null
+if [ $? != 0 ];
+then
+    //only for mac users atm
+    brew install pkg-config openssl
+    cargo install cargo-audit
+fi
+
+if ! command -v grcov &> /dev/null
+then
+    cargo install grcov
+fi
+
+
+cargo build

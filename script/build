@@ -1,0 +1,8 @@
+#!/bin/sh
+
+# script/build: build binary 
+set -e
+
+cd "$(dirname "$0")/.."
+
+cargo build --release

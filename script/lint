@@ -1,0 +1,17 @@
+#!/bin/sh
+
+# script/lint: Validate formatting and code quality 
+
+set -e
+
+cd "$(dirname "$0")/.."
+
+[ -z "$DEBUG" ] || set -x
+
+echo "==> Running code quality check"
+
+cargo clippy
+
+echo "==> Running fmt"
+
+cargo fmt --all -- --check

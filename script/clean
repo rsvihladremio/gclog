@@ -1,0 +1,9 @@
+#!/bin/sh
+
+# script/clean: cleanup target dir and coverage files
+set -e
+
+cd "$(dirname "$0")/.."
+
+cargo clean
+rm cargo-test*
