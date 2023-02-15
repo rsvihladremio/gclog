@@ -153,7 +153,7 @@ mod tests {
 
     #[test]
     fn test_is_log_finished() {
-        let result = is_log_finished(&"2022-01-02T11:11:01.111+0000: 234567.120: [Full GC (Allocation Failure) 2022-01-02T11:11:01.111+0000: 234567.120: [Class Histogram (before full gc):
+        let log_with_histo = "2022-01-02T11:11:01.111+0000: 234567.120: [Full GC (Allocation Failure) 2022-01-02T11:11:01.111+0000: 234567.120: [Class Histogram (before full gc):
 num     #instances         #bytes  class name
 ----------------------------------------------
     1:       9013468      888888888  org.apache.arrow.memory.ArrowBuf
@@ -161,17 +161,18 @@ num     #instances         #bytes  class name
     10821:             1             16  sun.util.resources.LocaleData$LocaleDataResourceBundleControl
 Total      99999999     8643256886
 , 1.1111111 secs]
-".to_string());
+";
+        let result = is_log_finished(log_with_histo);
         assert!(!result);
-
-        let finished_result = is_log_finished(&"2022-01-02T11:11:01.111+0000: 234567.120: [Full GC (Allocation Failure) 2022-01-02T11:11:01.111+0000: 234567.120: [Class Histogram (before full gc):
+        let log_with_histo_and_gc_time = "2022-01-02T11:11:01.111+0000: 234567.120: [Full GC (Allocation Failure) 2022-01-02T11:11:01.111+0000: 234567.120: [Class Histogram (before full gc):
 num     #instances         #bytes  class name
 ----------------------------------------------
     20:        431460       91111101  [B
 Total      99999999     8643256886
 , 1.1111111 secs]
     4185M->1198M(5336M), 4.3449655 secs]
-".to_string());
+";
+        let finished_result = is_log_finished(log_with_histo_and_gc_time);
         assert!(finished_result);
     }
 
@@ -180,14 +181,14 @@ Total      99999999     8643256886
         // Create a file inside of `std::env::temp_dir()`.
         let mut file = NamedTempFile::new().expect("unable to make tmp file");
         let jdk_stats = "OpenJDK 64-Bit Server VM (25.332-b09) for linux-amd64 JRE (1.8.0_332-b09), built on Apr 20 2022 08:18:57 by \"openjdk\" with gcc 4.4.7 20120313 (Red Hat 4.4.7-23)";
-        writeln!(file, "{}", jdk_stats).unwrap();
+        writeln!(file, "{jdk_stats}").unwrap();
         let memory_stats =
             "Memory: 4k page, physical 128000000k(127996468k free), swap 0k(0k free)";
-        writeln!(file, "{}", memory_stats).unwrap();
+        writeln!(file, "{memory_stats}").unwrap();
         let gc_flags = "CommandLine flags: -XX:+DisableExplicitGC -XX:ErrorFile=/opt/dremio/data/hs_err_pid%p.log -XX:G1HeapRegionSize=33554432 -XX:GCLogFileSize=4096000 -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/opt/dremio/data/ -XX:InitialHeapSize=2048000000 -XX:InitiatingHeapOccupancyPercent=25 -XX:MaxDirectMemorySize=120259084288 -XX:MaxGCPauseMillis=500 -XX:MaxHeapSize=17179869184 -XX:NumberOfGCLogFiles=5 -XX:+PrintClassHistogramAfterFullGC -XX:+PrintClassHistogramBeforeFullGC -XX:+PrintGC -XX:+PrintGCDateStamps -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+UseCompressedClassPointers -XX:+UseCompressedOops -XX:+UseG1GC -XX:+UseGCLogFileRotation";
-        writeln!(file, "{}", gc_flags).unwrap();
+        writeln!(file, "{gc_flags}").unwrap();
         let humongous_gc_log = "2021-02-22T01:01:02.120+0000: 22000.498: [GC pause (G1 Humongous Allocation) (young) (initial-mark), 0.0911111 secs]";
-        writeln!(file, "{}", humongous_gc_log).unwrap();
+        writeln!(file, "{humongous_gc_log}").unwrap();
         let full_gc_line = "2022-08-24T01:54:38.603+0000: 190268.356: [Full GC (Allocation Failure) 2022-08-24T01:54:38.603+0000: 190268.356: [Class Histogram (before full gc): 
 num     #instances         #bytes  class name
 ----------------------------------------------
@@ -216,19 +217,17 @@ Total      34967203     6624451024
     , 0.4783018 secs]
     [Times: user=4.76 sys=0.97, real=4.14 secs]
 ";
-        writeln!(file, "{}", full_gc_line).unwrap();
+        writeln!(file, "{full_gc_line}").unwrap();
         let new_file = file.into_temp_path();
         let new_file_str = new_file.to_str().expect("cannot read file");
         let parsed = exec(new_file_str.to_string()).expect("failed to parse");
         assert!(
             parsed.contains("Full GC - (Allocation Failure)"),
-            "was {}",
-            parsed
+            "was {parsed}"
         );
         assert!(
             parsed.contains("3.66"),
-            "expected 3.66 in the output but had {}",
-            parsed
+            "expected 3.66 in the output but had {parsed}"
         );
     }
 
@@ -237,14 +236,14 @@ Total      34967203     6624451024
         // Create a file inside of `std::env::temp_dir()`.
         let mut file = NamedTempFile::new().expect("unable to make tmp file");
         let jdk_stats = "OpenJDK 64-Bit Server VM (25.332-b09) for linux-amd64 JRE (1.8.0_332-b09), built on Apr 20 2022 08:18:57 by \"openjdk\" with gcc 4.4.7 20120313 (Red Hat 4.4.7-23)";
-        writeln!(file, "{}", jdk_stats).unwrap();
+        writeln!(file, "{jdk_stats}").unwrap();
         let memory_stats =
             "Memory: 4k page, physical 128000000k(127996468k free), swap 0k(0k free)";
-        writeln!(file, "{}", memory_stats).unwrap();
+        writeln!(file, "{memory_stats}").unwrap();
         let gc_flags = "CommandLine flags: -XX:+DisableExplicitGC -XX:ErrorFile=/opt/dremio/data/hs_err_pid%p.log -XX:G1HeapRegionSize=33554432 -XX:GCLogFileSize=4096000 -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/opt/dremio/data/ -XX:InitialHeapSize=2048000000 -XX:InitiatingHeapOccupancyPercent=25 -XX:MaxDirectMemorySize=120259084288 -XX:MaxGCPauseMillis=500 -XX:MaxHeapSize=17179869184 -XX:NumberOfGCLogFiles=5 -XX:+PrintClassHistogramAfterFullGC -XX:+PrintClassHistogramBeforeFullGC -XX:+PrintGC -XX:+PrintGCDateStamps -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+UseCompressedClassPointers -XX:+UseCompressedOops -XX:+UseG1GC -XX:+UseGCLogFileRotation";
-        writeln!(file, "{}", gc_flags).unwrap();
+        writeln!(file, "{gc_flags}").unwrap();
         let humongous_gc_log = "2021-02-22T01:01:02.120+0000: 22000.498: [GC pause (G1 Humongous Allocation) (young) (initial-mark), 0.0911111 secs]";
-        writeln!(file, "{}", humongous_gc_log).unwrap();
+        writeln!(file, "{humongous_gc_log}").unwrap();
         let full_gc_line = "2022-01-02T11:11:01.111+0000: 234567.120: [Full GC (Allocation Failure) 2022-01-02T11:11:01.111+0000: 234567.120: [Class Histogram (before full gc):
 num     #instances         #bytes  class name
 ----------------------------------------------
@@ -274,19 +273,17 @@ Total      99999999     8643256886
     4185M->1198M(5336M), 4.3449655 secs]
         [Eden: 0.0B(724.0M)->0.0B(6114.0M) Survivors: 0.0B->0.0B Heap: 8185.4M(8192.0M)->1111.0M(5335.0M)], [Metaspace: 111001K->111110K(1111704K)]
 ";
-        writeln!(file, "{}", full_gc_line).unwrap();
+        writeln!(file, "{full_gc_line}").unwrap();
         let new_file = file.into_temp_path();
         let new_file_str = new_file.to_str().expect("cannot read file");
         let parsed = exec(new_file_str.to_string()).expect("failed to parse");
         assert!(
             parsed.contains("Full GC - (Allocation Failure)"),
-            "was {}",
-            parsed
+            "was {parsed}"
         );
         assert!(
             parsed.contains("4.34"),
-            "expected 4.34 in the output but had {}",
-            parsed
+            "expected 4.34 in the output but had {parsed}"
         );
     }
 
@@ -342,19 +339,17 @@ Total      99999999     8643256886
     [Other: 9.0 ms]
 ";
 
-        write!(file, "{}", lines).unwrap();
+        write!(file, "{lines}").unwrap();
         let new_file = file.into_temp_path();
         let new_file_str = new_file.to_str().unwrap();
         let parsed = exec(new_file_str.to_string()).expect("failed to parse");
         assert!(
             parsed.contains("G1 Evacuation Pause"),
-            "did not find G1 Evacuation Pause file has {}",
-            parsed
+            "did not find G1 Evacuation Pause file has {parsed}"
         );
         assert!(
             parsed.contains("0.07"),
-            "did not find 0.07. File has {}",
-            parsed
+            "did not find 0.07. File has {parsed}"
         );
     }
 
@@ -373,19 +368,17 @@ CommandLine flags: -XX:CICompilerCount=4 -XX:ConcGCThreads=2 -XX:ErrorFile=/opt/
 54055.952: [G1Ergonomics (Heap Sizing) expand the heap, requested expansion amount: 1060320051 bytes, attempted expansion amount: 1073741824 bytes]
 54055.954: [G1Ergonomics (Concurrent Cycles) request concurrent cycle initiation, reason: occupancy higher than threshold, occupancy: 4664066048 bytes, allocation request: 0 bytes, threshold: 3238002675 bytes (25.00 %), source: end of GC]
 , 0.2753957 secs]";
-        write!(file, "{}", lines).unwrap();
+        write!(file, "{lines}").unwrap();
         let new_file = file.into_temp_path();
         let new_file_str = new_file.to_str().unwrap();
         let parsed = exec(new_file_str.to_string()).expect("failed to parse");
         assert!(
             parsed.contains("G1 Evacuation Pause"),
-            "did not find G1 Evacuation Pause file has {}",
-            parsed
+            "did not find G1 Evacuation Pause file has {parsed}"
         );
         assert!(
             parsed.contains("0.28"),
-            "did not find 0.28. File has {}",
-            parsed
+            "did not find 0.28. File has {parsed}"
         );
     }
 
@@ -399,26 +392,24 @@ CommandLine flags: -XX:CICompilerCount=4 -XX:ConcGCThreads=2 -XX:ErrorFile=/opt/
         )
         .unwrap();
         let jdk_stats = "OpenJDK 64-Bit Server VM (25.332-b09) for linux-amd64 JRE (1.8.0_332-b09), built on Apr 20 2022 08:18:57 by \"openjdk\" with gcc 4.4.7 20120313 (Red Hat 4.4.7-23)";
-        writeln!(file, "{}", jdk_stats).unwrap();
+        writeln!(file, "{jdk_stats}").unwrap();
         let memory_stats =
             "Memory: 4k page, physical 128000000k(127996468k free), swap 0k(0k free)";
-        writeln!(file, "{}", memory_stats).unwrap();
+        writeln!(file, "{memory_stats}").unwrap();
         let gc_flags = "CommandLine flags: -XX:+DisableExplicitGC -XX:ErrorFile=/opt/dremio/data/hs_err_pid%p.log -XX:G1HeapRegionSize=33554432 -XX:GCLogFileSize=4096000 -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/opt/dremio/data/ -XX:InitialHeapSize=2048000000 -XX:InitiatingHeapOccupancyPercent=25 -XX:MaxDirectMemorySize=120259084288 -XX:MaxGCPauseMillis=500 -XX:MaxHeapSize=17179869184 -XX:NumberOfGCLogFiles=5 -XX:+PrintClassHistogramAfterFullGC -XX:+PrintClassHistogramBeforeFullGC -XX:+PrintGC -XX:+PrintGCDateStamps -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+UseCompressedClassPointers -XX:+UseCompressedOops -XX:+UseG1GC -XX:+UseGCLogFileRotation";
-        writeln!(file, "{}", gc_flags).unwrap();
+        writeln!(file, "{gc_flags}").unwrap();
         let humongous_gc_log = "2021-02-22T01:01:02.120+0000: 22000.498: [GC pause (G1 Humongous Allocation) (young) (initial-mark), 0.0911111 secs]";
-        writeln!(file, "{}", humongous_gc_log).unwrap();
+        writeln!(file, "{humongous_gc_log}").unwrap();
         let new_file = file.into_temp_path();
         let new_file_str = new_file.to_str().unwrap();
         let parsed = exec(new_file_str.to_string()).expect("failed to parse");
         assert!(
             parsed.contains("G1 Humongous Allocation"),
-            "did not find humgous allocation file has {}",
-            parsed
+            "did not find humgous allocation file has {parsed}"
         );
         assert!(
             parsed.contains("0.09"),
-            "did not find 0.09. File has {}",
-            parsed
+            "did not find 0.09. File has {parsed}"
         );
     }
 }

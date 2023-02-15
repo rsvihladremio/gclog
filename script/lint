@@ -10,7 +10,7 @@ cd "$(dirname "$0")/.."
 
 echo "==> Running code quality check"
 
-cargo clippy
+cargo clippy --all-targets --all-features -- -D warnings
 
 echo "==> Running fmt"
 
