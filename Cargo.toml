@@ -2,6 +2,14 @@
 name = "gclog"
 version = "0.2.1"
 edition = "2021"
+authors = ["Ryan SVIHLA <info@foundev.pro>"]
+license = "Apache-2.0"
+description = "A tool to analyze jdk8 gc logs"
+readme = "README.md"
+homepage = "https://github.com/rsvihladremio/gclog"
+repository = "https://github.com/rsvihladremio/gclog"
+keywords = ["cli", "gclog", "java"]
+categories = ["command-line-utilities"]
 build = "build.rs"
 
 [build-dependencies]
@@ -17,14 +25,4 @@ histogram = "0.6.9"
 tempfile = "3.3.0"
 
 
-[package]
-name = "gclog"
-version = "0.2.1"
-authors = ["Ryan SVIHLA <info@foundev.pro>"]
-license = "Apache-2.0"
-description = "A tool to analyze jdk8 gc logs"
-readme = "README.md"
-homepage = "https://github.com/rsvihladremio/gclog"
-repository = "https://github.com/rsvihladremio/gclog"
-keywords = ["cli", "gclog", "java"]
-categories = ["command-line-utilities"]
+
