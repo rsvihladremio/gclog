@@ -15,3 +15,16 @@ tabled = "0.7.0"
 time = { version = "0.3.9", features = ["formatting", "parsing", "macros"] }
 histogram = "0.6.9"
 tempfile = "3.3.0"
+
+
+[package]
+name = "gclog"
+version = "0.2.1"
+authors = ["Ryan SVIHLA <info@foundev.pro>"]
+license = "Apache-2.0"
+description = "A tool to analyze jdk8 gc logs"
+readme = "README.md"
+homepage = "https://github.com/rsvihladremio/gclog"
+repository = "https://github.com/rsvihladremio/gclog"
+keywords = ["cli", "gclog", "java"]
+categories = ["command-line-utilities"]
